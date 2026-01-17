@@ -13,7 +13,10 @@ Welcome to the official documentation for **coders.api**. This comprehensive gui
 5.  [Security & Protection](#-security--protection)
 6.  [Performance & Optimization](#-performance--optimization)
 7.  [Monitoring & Telemetry](#-monitoring--telemetry)
-8.  [Utilities](#-utilities)
+8.  [Authentication & Security](#-authentication--security)
+9.  [Plugin System](#-plugin-system)
+10. [Official CLI](#-official-cli)
+11. [Utilities](#-utilities)
 
 ---
 
@@ -70,6 +73,7 @@ const app = new CodersAPI({
     limit: '5mb',             // (String) Request body size limit. Default: '1mb'
     rateLimitWindow: 60000,   // (Number) Rate limit window in ms. Default: 15 mins
     maxRequests: 500,         // (Number) Max requests per window. Default: 150
+    secret: 'my-secret',      // (String) JWT signing secret. Default: (Strong 64-char string)
     cors: {                   // (Object) Custom CORS options
         origin: 'https://mydomain.com',
         credentials: true
@@ -223,6 +227,89 @@ The server attempts to use the `spdy` library for **HTTP/2**.
 On startup, the specific `_safeV8Optimize` method runs:
 1.  Enables V8 `harmony` flags.
 2.  Runs "warm-up" cycles on JSON stringification functions to trigger Inline Caching (IC) in the V8 engine, ensuring the first request is as fast as the last.
+
+---
+
+## 🔐 Authentication & Security
+
+CodersAPI provides a first-class authentication system built for modern SaaS architectures.
+
+### JWT Authentication
+
+The framework uses `jsonwebtoken` for secure stateless authentication.
+
+#### `app.sign(payload, [expiry])`
+Signs a new JWT.
+*   **payload**: (Object) The data to store in the token.
+*   **expiry**: (String) Expiration time (e.g., '24h', '7d'). Default: '24h'.
+
+#### `app.guard([roles])`
+A middleware to protect routes.
+*   **roles**: (Array) Optional list of required roles. If the decoded token's `role` field is not in this list, access is denied (403).
+
+```javascript
+// Example Usage
+app.post('/login', (req, res) => {
+   const token = app.sign({ id: 1, role: 'admin' });
+   res.ok({ token });
+});
+
+app.get('/dashboard', app.guard(['admin', 'editor']), (req, res) => {
+   res.ok(`Welcome ${req.user.id}`); // req.user is populated by the guard
+});
+```
+
+### API Keys
+Ideal for internal services or B2B integrations.
+
+#### `app.apiKeyGuard([keys])`
+*   **keys**: (Array) List of valid API keys to check against the `x-api-key` header.
+
+### User Rate Limiting
+Go beyond IP-based limiting by tracking specific users.
+
+#### `app.userRateLimit(maxPerMinute)`
+*   **maxPerMinute**: (Number) Max requests allowed per minute per user ID (from JWT) or IP.
+
+---
+
+## 🧩 Plugin System
+
+Extend the core engine without modifying the library source.
+
+#### `app.usePlugin(plugin, [options])`
+
+A plugin is simply a function that receives the `CodersAPI` instance.
+
+```javascript
+const loggerPlugin = (instance, opts) => {
+   console.log(`Plugin ${opts.name} loaded`);
+   instance.app.use((req, res, next) => {
+       console.log('Request received');
+       next();
+   });
+};
+
+app.usePlugin(loggerPlugin, { name: 'RequestLogger' });
+```
+
+---
+
+## 💻 Official CLI
+
+The `coders.api` command-line tool simplifies environment management and bootstrapping.
+
+### Available Commands
+
+| Command | Description |
+| :--- | :--- |
+| `init` | Scaffolds `index.js` and `.env` in the current directory. |
+| `start` | Starts the server in production mode. |
+| `dev` | Starts the server in development mode with `nodemon`. |
+| `status` | Displays real-time CPU, RAM, and OS metrics. |
+| `env` | Lists project environment variables (masked). |
+| `info` | Displays project information and GitHub links. |
+| `version` | Shows the current framework version. |
 
 ---
 

@@ -141,6 +141,65 @@ Standard `res` objects are augmented with semantic utility methods.
 
 ---
 
+## 🔐 Advanced Authentication (Built-in)
+
+CodersAPI includes an enterprise-grade authentication system ready for SaaS development.
+
+### JWT Authentication
+Generate and verify tokens with ease.
+```javascript
+// Sign a token
+const token = app.sign({ id: 123, role: 'admin' });
+
+// Protect a route
+app.get('/admin/stats', app.guard(['admin']), (req, res) => {
+    res.ok({ stats: '...' });
+});
+```
+
+### API Key Protection
+Ideal for B2B APIs or third-party integrations.
+```javascript
+app.get('/data', app.apiKeyGuard(['key_123', 'key_456']), (req, res) => {
+    res.ok("Secure Data");
+});
+```
+
+### User-Specific Rate Limiting
+Prevent users from abusing your API. Works with JWT or IP.
+```javascript
+// Limit to 10 requests per minute for this specific route
+app.get('/expensive-task', app.guard(), app.userRateLimit(10), (req, res) => {
+    res.ok("Task complete");
+});
+```
+
+---
+
+## 🧩 Plugin System
+
+CodersAPI features a modular plugin system that allows you to extend the framework's core functionality without modifying its internal code.
+
+### Using a Plugin
+```javascript
+const myPlugin = (instance, options) => {
+    // Access the express app
+    instance.app.use((req, res, next) => {
+        console.log(`Plugin says: ${options.message}`);
+        next();
+    });
+};
+
+app.usePlugin(myPlugin, { message: 'Hello from Plugin!' });
+```
+
+### Official Plugins (Coming Soon)
+- `@coders.api/auth`: Robust JWT and OAuth2 integration.
+- `@coders.api/metrics`: Prometheus and Grafana support.
+- `@coders.api/db`: Automated ORM and Database connection management.
+
+---
+
 ## 📊 Observability
 
 For local development and monitoring, `coders.api` includes a terminal-based dashboard built with `blessed-contrib`.
@@ -150,6 +209,33 @@ For local development and monitoring, `coders.api` includes a terminal-based das
 *   **Security Auditing**: A visual gauge of currently blocked IP addresses.
 
 To enable, simply pass `{ telemetry: true }` in the constructor.
+
+## 💻 Official CLI
+
+CodersAPI comes with an integrated CLI to speed up your development workflow.
+
+### Installation
+The CLI is included automatically when you install the package. To use it globally, you can link it or install with `-g`.
+
+### Commands
+*   `coders.api init`: Automatically generates a boilerplate `index.js` and `.env` file.
+*   `coders.api start`: Launch the server in production mode.
+*   `coders.api dev`: Launch with automatic restart (uses `nodemon` if available).
+*   `coders.api status`: Show real-time CPU, RAM, and system information.
+*   `coders.api env`: List important environment variables (masked for security).
+*   `coders.api info`: Display project information and GitHub links.
+*   `coders.api --version`: Check the framework version.
+
+```bash
+# Initialize a new project
+$ coders.api init
+
+# Start dev mode
+$ coders.api dev
+
+# Check system health
+$ coders.api status
+```
 
 ---
 
