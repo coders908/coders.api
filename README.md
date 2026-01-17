@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![CodersAPI](https://via.placeholder.com/800x200.png?text=coders.api+|+Server+Framework)
+![CodersAPI](https://cdn.discordapp.com/avatars/1007361952202379294/0be318a5b3742c419c63bf21807975c8.webp?size=1024)
 
 **Enterprise-Grade Node.js Framework for Scalable Microservices**
 
