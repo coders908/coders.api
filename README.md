@@ -83,9 +83,7 @@ In a standard Node.js environment, your server runs on a single thread, utilizin
 Pass the `cloud: true` flag in the constructor or the `.start()` method.
 
 ```javascript
-const app = new CodersAPI({
-    cloud: true // Automatic clustering
-});
+const app = new CodersAPI();
 
 // OR enable it during startup
 app.start(3000, { cloud: true });
@@ -105,13 +103,10 @@ app.start(3000, { cloud: true });
 const CodersAPI = require('coders.api');
 
 const server = new CodersAPI({
-    port: 3000,
     name: 'Production-API',
-    cloud: true,          // Enable Multi-Core Clustering
-    telemetry: true       // Enable CLI Ops Dashboard
 });
 
-server.start();
+server.start(3000, { cloud: true, telemetry: true }); // Enable Cloud Mode and CLI Ops Dashboard
 ```
 
 ### Advanced Routing
@@ -218,23 +213,23 @@ CodersAPI comes with an integrated CLI to speed up your development workflow.
 The CLI is included automatically when you install the package. To use it globally, you can link it or install with `-g`.
 
 ### Commands
-*   `coders.api init`: Automatically generates a boilerplate `index.js` and `.env` file.
-*   `coders.api start`: Launch the server in production mode.
-*   `coders.api dev`: Launch with automatic restart (uses `nodemon` if available).
-*   `coders.api status`: Show real-time CPU, RAM, and system information.
-*   `coders.api env`: List important environment variables (masked for security).
-*   `coders.api info`: Display project information and GitHub links.
-*   `coders.api --version`: Check the framework version.
+*   `codersapi init`: Automatically generates a boilerplate `index.js` and `.env` file.
+*   `codersapi start`: Launch the server in production mode.
+*   `codersapi dev`: Launch with automatic restart (uses `nodemon` if available).
+*   `codersapi status`: Show real-time CPU, RAM, and system information.
+*   `codersapi env`: List important environment variables (masked for security).
+*   `codersapi info`: Display project information and sub-commands (deps, system, etc.).
+*   `codersapi --version`: Check the framework version.
 
 ```bash
 # Initialize a new project
-$ coders.api init
+$ codersapi init
 
 # Start dev mode
-$ coders.api dev
+$ codersapi dev
 
 # Check system health
-$ coders.api status
+$ codersapi status
 ```
 
 ---
@@ -249,11 +244,11 @@ $ coders.api status
 2.  **Create your entry point (`main.js`)**:
     ```javascript
     const CodersAPI = require('coders.api');
-    const service = new CodersAPI({ port: 8080 });
+    const service = new CodersAPI();
     
     service.get('/health', (req, res) => res.ok("System Operational"));
     
-    service.start();
+    service.start(8080);
     ```
 
 ---

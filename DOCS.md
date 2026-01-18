@@ -39,9 +39,7 @@ const CodersAPI = require('coders.api');
 
 // Initialize the server
 const app = new CodersAPI({
-    port: 3000,
     name: 'My API',
-    telemetry: true // Enables the terminal dashboard
 });
 
 // Add a simple route
@@ -50,7 +48,7 @@ app.get('/', (req, res) => {
 });
 
 // Start listening
-app.start();
+app.start(3000);
 ```
 
 Run it:
@@ -68,8 +66,6 @@ The `CodersAPI` class accepts a configuration object to tailor the server's beha
 const app = new CodersAPI({
     port: 8080,               // (Number) Port to listen on. Default: 3000
     name: 'Production Srv',   // (String) Server name in logs. Default: 'CodersAPI Server'
-    cloud: true,              // (Boolean) Enable Multi-Core Clustering. Default: false
-    telemetry: true,          // (Boolean) Enable CLI Dashboard. Default: false
     limit: '5mb',             // (String) Request body size limit. Default: '1mb'
     rateLimitWindow: 60000,   // (Number) Rate limit window in ms. Default: 15 mins
     maxRequests: 500,         // (Number) Max requests per window. Default: 150
@@ -297,7 +293,7 @@ app.usePlugin(loggerPlugin, { name: 'RequestLogger' });
 
 ## 💻 Official CLI
 
-The `coders.api` command-line tool simplifies environment management and bootstrapping.
+The `codersapi` command-line tool simplifies environment management and bootstrapping.
 
 ### Available Commands
 
@@ -308,8 +304,16 @@ The `coders.api` command-line tool simplifies environment management and bootstr
 | `dev` | Starts the server in development mode with `nodemon`. |
 | `status` | Displays real-time CPU, RAM, and OS metrics. |
 | `env` | Lists project environment variables (masked). |
-| `info` | Displays project information and GitHub links. |
+| `info` | Access sub-commands: `project`, `system`, `env`, `deps`, `author`. |
 | `version` | Shows the current framework version. |
+
+### Info Sub-commands
+Use `codersapi info <subcommand>` to get detailed metadata:
+- `project`: General framework details (default).
+- `system`: Detailed CPU, RAM, and OS metrics.
+- `env`: List and mask sensitive project environment variables.
+- `deps`: List all current project dependencies.
+- `author`: Developer contact and social information.
 
 ---
 
