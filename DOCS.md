@@ -110,15 +110,26 @@ app.group('/api/v1', (router) => {
 });
 ```
 
-### Validation Middleware
+### Validation Middleware (Hardened)
 
-The `validate` method ensures required fields exist in `req.body`, `req.query`, or `req.params` before your handler runs.
+The `validate` method ensures required fields exist and match specific rules in `req.body`, `req.query`, or `req.params`.
 
+#### Simple Validation (Existence)
 ```javascript
-// Automatically validates that 'username' and 'password' are not null/undefined/empty
 app.post('/login', app.validate(['username', 'password']), (req, res) => {
-    // If code reaches here, username and password exist
     res.ok("Login successful");
+});
+```
+
+#### Advanced Validation (Schema-based)
+You can define types and constraints for each field.
+```javascript
+app.post('/register', app.validate({
+    username: { required: true, type: 'string', min: 3, max: 20 },
+    age: { required: true, type: 'number' },
+    bio: { type: 'string', max: 200 } // Optional field with max length
+}), (req, res) => {
+    res.ok("User registered");
 });
 ```
 
@@ -202,6 +213,12 @@ We automatically inject security headers to preventing common attacks:
 ### 3. Rate Limiting
 A secondary layer limits the total requests per IP within a time window (Default: 150 requests / 15 mins). Excess requests receive `429 Too Many Requests`.
 
+### 4. Proxy Trust
+If your server is behind a proxy (Nginx, Cloudflare, etc.), enable `trustProxy` to ensure correct IP detection for the DDoS Shield.
+```javascript
+const app = new CodersAPI({ trustProxy: true });
+```
+
 ---
 
 ## ⚡ Performance & Optimization
@@ -266,6 +283,39 @@ Go beyond IP-based limiting by tracking specific users.
 
 #### `app.userRateLimit(maxPerMinute)`
 *   **maxPerMinute**: (Number) Max requests allowed per minute per user ID (from JWT) or IP.
+
+#### `app.csrfGuard()`
+Enforces CSRF protection using the Double Submit Cookie pattern.
+*   **Requirement**: Client must send `X-CSRF-Token` header matching the `CSRF-Token` cookie.
+
+---
+
+## 🔒 Integrity Engine (Anti-Fiddler/MITM)
+
+The Integrity Engine prevents attackers from intercepting and modifying traffic using tools like Fiddler, Burp Suite, or HTTP proxies.
+
+### 1. Response Integrity (Active)
+Every response sent via `res.ok()` automatically includes an **HMAC-SHA256 signature** in the `X-Response-Signature` header.
+*   **Verification**: The client can use the shared secret to hash the response body and compare it with the header. If an attacker modifies the JSON body in a proxy, the signature will no longer match.
+
+### 2. Request Integrity (Guard)
+Protect sensitive endpoints from tampering by requiring the client to sign the request.
+
+#### `app.integrityGuard()`
+Add this middleware to any route to verify the payload integrity.
+
+```javascript
+app.post('/transfer', app.integrityGuard(), (req, res) => {
+   res.ok("Transition processed safely");
+});
+```
+
+**Client Requirements:**
+The client must send two headers:
+1.  `x-request-timestamp`: Current Unix timestamp (MS).
+2.  `x-request-signature`: `HMAC-SHA256(secret, method + url + timestamp + body)`
+
+*This prevents **Replay Attacks** (5-minute window) and **Payload Tampering**.*
 
 ---
 
